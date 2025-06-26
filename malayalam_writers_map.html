@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malayalam Literature Writers Map</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    
+    <!-- Custom CSS -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            color: #1e3c72;
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            font-weight: 300;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.3em;
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+        
+        .header .subtitle {
+            color: #888;
+            font-size: 1em;
+        }
+        
+        .map-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            height: 75vh;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border: 3px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+        
+        .custom-popup {
+            font-family: 'Georgia', serif;
+            max-width: 420px;
+            line-height: 1.6;
+        }
+        
+        .popup-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            margin: -12px -20px 20px -20px;
+            border-radius: 8px 8px 0 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .popup-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .popup-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .popup-subtitle {
+            font-size: 0.95em;
+            opacity: 0.9;
+            font-style: italic;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .popup-content {
+            padding: 0 8px;
+        }
+        
+        .info-row {
+            display: flex;
+            margin-bottom: 12px;
+            align-items: flex-start;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #2c3e50;
+            min-width: 90px;
+            margin-right: 12px;
+            font-size: 0.9em;
+        }
+        
+        .info-value {
+            color: #34495e;
+            flex: 1;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        
+        .works-list {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 8px;
+            border-left: 4px solid #667eea;
+            font-style: italic;
+        }
+        
+        .period-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        
+        .leaflet-popup-content-wrapper {
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+        
+        .stats-container {
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .stat-number {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.95em;
+            font-weight: 500;
+        }
+        
+        .legend {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            font-size: 0.9em;
+            z-index: 1000;
+        }
+        
+        .legend h4 {
+            margin-bottom: 10px;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .legend-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2.2em; }
+            .header p { font-size: 1.1em; }
+            .map-container { height: 65vh; }
+            .legend { 
+                position: relative; 
+                bottom: auto; 
+                right: auto; 
+                margin: 20px; 
+            }
+            .stats-container { 
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📚 Malayalam Literature Writers</h1>
+        <p>Literary Heritage Map of Kerala</p>
+        <div class="subtitle">Exploring the birthplaces and contributions of Malayalam literature's greatest minds</div>
+    </div>
+    
+    <div class="stats-container">
+        <div class="stat-card">
+            <div class="stat-number" id="totalWriters">20</div>
+            <div class="stat-label">Literary Giants</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="totalDistricts">12</div>
+            <div class="stat-label">Districts Represented</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="literaryPeriods">4</div>
+            <div class="stat-label">Literary Periods</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="jnanpithWinners">4</div>
+            <div class="stat-label">Jnanpith Winners</div>
+        </div>
+    </div>
+    
+    <div class="map-container">
+        <div id="map"></div>
+    </div>
+    
+    <div class="legend">
+        <h4>Literary Periods</h4>
+        <div class="legend-item">
+            <div class="legend-icon" style="background: linear-gradient(135deg, #ff6b6b, #ee5a52);"></div>
+            <span>Classical (Pre-1900)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-icon" style="background: linear-gradient(135deg, #4ecdc4, #44a08d);"></div>
+            <span>Modern (1900-1950)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);"></div>
+            <span>Contemporary (1950+)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-icon" style="background: linear-gradient(135deg, #ffeaa7, #fdcb6e);"></div>
+            <span>Jnanpith Winner</span>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    
+    <script>
+        // Malayalam Writers Data with locations and literary information
+        const malayalamWriters = [
+            {
+                name: "M.T. Vasudevan Nair",
+                birthYear: 1933,
+                deathYear: null,
+                birthPlace: "Kudallur, Palakkad",
+                lat: 10.7760,
+                lng: 76.6560,
+                period: "Contemporary",
+                jnanpith: true,
+                majorWorks: "Naalukettu, Randamoozham, Manju, Kaalam",
+                contribution: "Master of post-Independence Malayalam literature, known for psychological realism",
+                awards: "Jnanpith Award (1995), Padma Bhushan"
+            },
+            {
+                name: "Thakazhi Sivasankara Pillai",
+                birthYear: 1912,
+                deathYear: 1999,
+                birthPlace: "Thakazhi, Alappuzha",
+                lat: 9.4981,
+                lng: 76.3388,
+                period: "Modern",
+                jnanpith: true,
+                majorWorks: "Chemmeen, Kayar, Thottiyude Makan, Enippadikal",
+                contribution: "Social realist who depicted the lives of fishermen and farmers",
+                awards: "Jnanpith Award (1984), Padma Bhushan"
+            },
+            {
+                name: "O.V. Vijayan",
+                birthYear: 1930,
+                deathYear: 2005,
+                birthPlace: "Palakkad",
+                lat: 10.7867,
+                lng: 76.6548,
+                period: "Contemporary",
+                jnanpith: false,
+                majorWorks: "Khasakkinte Itihasam, Dharmapuranam, Gurusagaram",
+                contribution: "Pioneering modernist novelist and cartoonist",
+                awards: "Kerala Sahitya Akademi Award, Vayalar Award"
+            },
+            {
+                name: "Vaikom Muhammad Basheer",
+                birthYear: 1908,
+                deathYear: 1994,
+                birthPlace: "Vaikom, Kottayam",
+                lat: 9.7489,
+                lng: 76.3897,
+                period: "Modern",
+                jnanpith: false,
+                majorWorks: "Balyakalasakhi, Mathilukal, Pathummayude Aadu, Ntuppuppakkoranendarnnu",
+                contribution: "Humanist writer known for simple, down-to-earth storytelling",
+                awards: "Padma Shri, Kerala Sahitya Akademi Award"
+            },
+            {
+                name: "G. Sankara Kurup",
+                birthYear: 1901,
+                deathYear: 1978,
+                birthPlace: "Nayathode, Ernakulam",
+                lat: 10.0889,
+                lng: 76.1350,
+                period: "Modern",
+                jnanpith: true,
+                majorWorks: "Odakkuzhal, Vishwadarshan, Mukthi, Saraswati",
+                contribution: "First Malayalam poet to win Jnanpith Award, romantic and nature poet",
+                awards: "Jnanpith Award (1965), Padma Bhushan"
+            },
+            {
+                name: "Lalithambika Antherjanam",
+                birthYear: 1909,
+                deathYear: 1987,
+                birthPlace: "Punnayurkulam, Thrissur",
+                lat: 10.5276,
+                lng: 76.2144,
+                period: "Modern",
+                jnanpith: false,
+                majorWorks: "Agnisakshi, Pakshiyude Manam, Adyathe Kathakal",
+                contribution: "Pioneer of feminist writing in Malayalam literature",
+                awards: "Kerala Sahitya Akademi Award, Kendra Sahitya Akademi Award"
+            },
+            {
+                name: "Thunchaththu Ezhuthachan",
+                birthYear: 1495,
+                deathYear: 1575,
+                birthPlace: "Tirur, Malappuram",
+                lat: 10.9139,
+                lng: 75.9064,
+                period: "Classical",
+                jnanpith: false,
+                majorWorks: "Adhyatma Ramayanam, Mahabharatam, Harinama Kirtanam",
+                contribution: "Father of Malayalam literature, standardized Malayalam script",
+                awards: "Considered the Adi Kavi (first poet) of Malayalam"
+            },
+            {
+                name: "Kumaran Asan",
+                birthYear: 1873,
+                deathYear: 1924,
+                birthPlace: "Kayikkara, Kollam",
+                lat: 8.8932,
+                lng: 76.6141,
+                period: "Modern",
+                jnanpith: false,
+                majorWorks: "Veena Poovu, Nalini, Karuna, Leela",
+                contribution: "Poet of the Malayalam Renaissance, social reformer",
+                awards: "Part of the Great Trio of Malayalam poetry"
+            },
+            {
+                name: "Vallathol Narayana Menon",
+                birthYear: 1878,
+                deathYear: 1958,
+                birthPlace: "Chennara, Malappuram",
+                lat: 11.0733,
+                lng: 76.0199,
+                period: "Modern",
+                jnanpith: false,
+                majorWorks: "Magdalana Mariyam, Chitrayogam, Bandhanasthanaya Aniruddhan",
+                contribution: "Patriotic poet and founder of Kerala Kalamandalam",
+                awards: "Padma Bhushan, Part of the Great Trio"
+            },
+            {
+                name: "Ulloor S. Parameswara Iyer",
+                birthYear: 1877,
+                deathYear: 1949,
+                birthPlace: "Ulloor, Thiruvananthapuram",
+                lat: 8.5241,
+                lng: 76.9366,
+                period: "Modern",
+                jnanpith: false,
+                majorWorks: "Ummachu, Pingala, Kerala Sahitya Charitram",
+                contribution: "Literary historian and critic, completed the Great Trio",
+                awards: "Pioneer of Malayalam literary criticism"
+            },
+            {
+                name: "Changampuzha Krishna Pillai",
+                birthYear: 1911,
+                deathYear: 1948,
+                birthPlace: "Changampuzha, Kochi",
+                lat: 9.9312,
+                lng: 76.2673,
+                period: "Modern",
+                jnanpith: false,
+                majorWorks: "Ramanan, Markandeyan, Vazhakkula",
+                contribution: "Romantic poet who brought colloquial language to poetry",
+                awards: "Popular poet of the masses"
+            },
+            {
+                name: "O.N.V. Kurup",
+                birthYear: 1931,
+                deathYear: 2016,
+                birthPlace: "Chavakkad, Thrissur",
+                lat: 10.5276,
+                lng: 76.0199,
+                period: "Contemporary",
+                jnanpith: true,
+                majorWorks: "Bhumikkoru Charamageetham, Agneyam, Meghadootham",
+                contribution: "Progressive poet and lyricist, people's poet",
+                awards: "Jnanpith Award (2007), Padma Shri"
+            },
+            {
+                name: "Sarah Joseph",
+                birthYear: 1946,
+                deathYear: null,
+                birthPlace: "Thrissur",
+                lat: 10.5276,
+                lng: 76.2144,
+                period: "Contemporary",
+                jnanpith: false,
+                majorWorks: "Aalahayude Penmakkal, Othappu, Mattathi",
+                contribution: "Feminist writer and social critic",
+                awards: "Kendra Sahitya Akademi Award, Vayalar Award"
+            },
+            {
+                name: "Anand",
+                birthYear: 1936,
+                deathYear: 2020,
+                birthPlace: "Thrissur",
+                lat: 10.5276,
+                lng: 76.2144,
+                period: "Contemporary",
+                jnanpith: false,
+                majorWorks: "Aalkoottathil Thaniye, Marubhoomikalude Katha, Govardhanante Yathrakal",
+                contribution: "Modernist writer known for experimental narratives",
+                awards: "Kerala Sahitya Akademi Award"
+            },
+            {
+                name: "N.S. Madhavan",
+                birthYear: 1948,
+                deathYear: null,
+                birthPlace: "Majeri, Kozhikode",
+                lat: 11.2588,
+                lng: 75.7804,
+                period: "Contemporary",
+                jnanpith: false,
+                majorWorks: "Higuita, Thiruthu, Litmus",
+                contribution: "Contemporary short story writer and novelist",
+                awards: "Kerala Sahitya Akademi Award"
+            },
+            {
+                name: "U.R. Ananthamurthy",
+                birthYear: 1932,
+                deathYear: 2014,
+                birthPlace: "Melige, Karnataka",
+                lat: 13.4167,
+                lng: 75.0167,
+                period: "Contemporary",
+                jnanpith: false,
+                majorWorks: "Translations and influence on Malayalam literature",
+                contribution: "Influenced Malayalam literature through translations",
+                awards: "Jnanpith Award winner (Kannada)"
+            },
+            {
+                name: "Poonthanam Nambudiri",
+                birthYear: 1547,
+                deathYear: 1640,
+                birthPlace: "Perumpadappu, Thrissur",
+                lat: 10.5276,
+                lng: 76.2144,
+                period: "Classical",
+                jnanpith: false,
+                majorWorks: "Jnanappana, Bhasha Ramayanam",
+                contribution: "Devotional poet of the Bhakti movement",
+                awards: "Classical Malayalam poet"
+            },
+            {
+                name: "Cherusseri Namboothiri",
+                birthYear: 1375,
+                deathYear: 1475,
+                birthPlace: "Kolathunadu",
+                lat: 11.8745,
+                lng: 75.3704,
+                period: "Classical",
+                jnanpith: false,
+                majorWorks: "Krishnagatha",
+                contribution: "Medieval Malayalam poet",
+                awards: "Classical poet"
+            },
+            {
+                name: "P. Kunhiraman Nair",
+                birthYear: 1906,
+                deathYear: 1978,
+                birthPlace: "Perinchery, Thrissur",
+                lat: 10.5276,
+                lng: 76.2144,
+                period: "Modern",
+                jnanpith: false,
+                majorWorks: "Aparajeya Gayathri, Souparnikaythwam",
+                contribution: "Poet and playwright",
+                awards: "Kerala Sahitya Akademi Award"
+            },
+            {
+                name: "Subhash Chandran",
+                birthYear: 1959,
+                deathYear: null,
+                birthPlace: "Wadakkanchery, Thrissur",
+                lat: 10.6167,
+                lng: 76.1167,
+                period: "Contemporary",
+                jnanpith: false,
+                majorWorks: "Manushyanu Oru Aamukham, Khasakkinte Ithihasam (screenplay)",
+                contribution: "Contemporary novelist and short story writer",
+                awards: "Kerala Sahitya Akademi Award"
+            }
+        ];
+
+        // Initialize the map
+        const map = L.map('map').setView([10.8505, 76.2711], 8);
+        
+        // Add custom map tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 18
+        }).addTo(map);
+        
+        // Function to get marker color based on period and awards
+        function getMarkerStyle(writer) {
+            let gradient;
+            if (writer.jnanpith) {
+                gradient = 'linear-gradient(135deg, #ffeaa7, #fdcb6e)';
+            } else if (writer.period === 'Classical') {
+                gradient = 'linear-gradient(135deg, #ff6b6b, #ee5a52)';
+            } else if (writer.period === 'Modern') {
+                gradient = 'linear-gradient(135deg, #4ecdc4, #44a08d)';
+            } else {
+                gradient = 'linear-gradient(135deg, #667eea, #764ba2)';
+            }
+            
+            return gradient;
+        }
+        
+        // Create markers for each writer
+        malayalamWriters.forEach(function(writer, index) {
+            const gradient = getMarkerStyle(writer);
+            
+            // Create custom marker icon
+            const customIcon = L.divIcon({
+                className: 'custom-marker',
+                html: `<div style="background: ${gradient}; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; box-shadow: 0 6px 15px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px;">✍️</div>`,
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            });
+            
+            // Calculate age if death year is available
+            const ageText = writer.deathYear ? 
+                `Age: ${writer.deathYear - writer.birthYear}` : 
+                `Age: ${new Date().getFullYear() - writer.birthYear} (Living)`;
+                
+            // Create popup content
+            const popupContent = `
+                <div class="custom-popup">
+                    <div class="popup-header">
+                        <div class="popup-title">${writer.name}</div>
+                        <div class="popup-subtitle">${writer.birthPlace}</div>
+                    </div>
+                    <div class="popup-content">
+                        <div class="info-row">
+                            <span class="info-label">📅 Born:</span>
+                            <span class="info-value">${writer.birthYear}</span>
+                        </div>
+                        ${writer.deathYear ? `
+                        <div class="info-row">
+                            <span class="info-label">⚰️ Died:</span>
+                            <span class="info-value">${writer.deathYear} (${ageText})</span>
+                        </div>
+                        ` : `
+                        <div class="info-row">
+                            <span class="info-label">🎂 Age:</span>
+                            <span class="info-value">${ageText}</span>
+                        </div>
+                        `}
+                        <div class="info-row">
+                            <span class="info-label">🎭 Period:</span>
+                            <span class="info-value">${writer.period}
+                                <span class="period-badge">${writer.period}</span>
+                            </span>
+                        </div>
+                        ${writer.jnanpith ? `
+                        <div class="info-row">
+                            <span class="info-label">🏆 Jnanpith:</span>
+                            <span class="info-value">Winner ⭐</span>
+                        </div>
+                        ` : ''}
+                        <div class="info-row">
+                            <span class="info-label">📚 Major Works:</span>
+                            <div class="works-list">${writer.majorWorks}</div>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">✨ Contribution:</span>
+                            <span class="info-value">${writer.contribution}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">🎖️ Awards:</span>
+                            <span class="info-value">${writer.awards}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Create marker with popup
+            const marker = L.marker([writer.lat, writer.lng], { icon: customIcon })
+                .bindPopup(popupContent, {
+                    maxWidth: 450,
+                    className: 'custom-popup-wrapper'
+                });
+            
+            // Add hover effect
+            marker.on('mouseover', function() {
+                this.openPopup();
+            });
+            
+            marker.addTo(map);
+        });
+        
+        // Update statistics
+        const districts = new Set(malayalamWriters.map(w => w.birthPlace.split(',')[1]?.trim() || w.birthPlace.split(',')[0]));
+        const periods = new Set(malayalamWriters.map(w => w.period));
+        const jnanpithWinners = malayalamWriters.filter(w => w.jnanpith).length;
+        
+        document.getElementById('totalWriters').textContent = malayalamWriters.length;
+        document.getElementById('totalDistricts').textContent = districts.size;
+        document.getElementById('literaryPeriods').textContent = periods.size;
+        document.getElementById('jnanpithWinners').textContent = jnanpithWinners;
+        
+        // Fit map to show all markers
+        const group = new L.featureGroup();
+        malayalamWriters.forEach(function(writer) {
+            group.addLayer(L.marker([writer.lat, writer.lng]));
+        });
+        
+        if (group.getLayers().length > 0) {
+            map.fitBounds(group.getBounds().pad(0.05));
+        }
+        
+        // Add scale control
+        L.control.scale().addTo(map);
+        
+        // Custom attribution
+        map.attributionControl.setPrefix('<a href="https://leafletjs.com">Leaflet</a> | Malayalam Literature Heritage Map');
+    </script>
+</body>
+</html>
