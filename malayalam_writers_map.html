@@ -306,13 +306,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     
     <script>
-        // CSV data from your uploaded file
-        const csvData = `Chapter,Name,Birth,Death,Place,District,Place 1,Latitude,Longitude,Father,Mother,Books
-37.2,കിളിമാനൂർ രവിവർമ്മ കോയിത്തമ്പുരാൻ,910,974,കിളിമാനൂർ കൊട്ടാരം,തിരുവനന്തപുരം,കിളിമാനൂര്‍,8.770694,76.883626,കേരള വർമ്മകോയിത്തമ്പുരാന്‍‍,പൂയംതിരുനാളിൽ ജനിച്ച മൂത്തതമ്പുരാട്ടി,"കംസവധം, അനന്തപുരമാഹാത്മ്യം കുമ്മി"
-37.37,കാർത്തികതിരുനാൾ രാമവർമ്മമഹാരാജാവു്,899,973,തിരുവിതാംകൂര്‍ കൊട്ടാരം,തിരുവനന്തപുരം,തിരുവനന്തപുരം,8.524139,76.936638,കിളിമാനൂർ കേരളവർമ്മ കോയിത്തമ്പുരാന്‍,കാർത്തികതിരുനാൾ പാർവതിറാണി,"ബാലരാമഭരതമെന്ന ഭരതശാസ്ത്രപ്രബന്ധം, രാജസൂയം, സുഭദ്രാഹരണം, ബകവധം, ഗന്ധർവവിജയം, പാഞ്ചാലീസ്വയംവരം, കല്യാണസൗഗന്ധികം, നരകാസുരവധത്തിലെ പ്രഥമഭാഗം"
-37.42,അശ്വതിതിരുനാൾ ഇളയതമ്പുരാൻ,931,969,തിരുവിതാംകൂര്‍ കൊട്ടാരം,തിരുവനന്തപുരം,തിരുവനന്തപുരം,8.524139,76.936638,കിളിമാനൂർ രവിവർമ്മകോയിത്തമ്പുരാൻ,പൂയംനക്ഷത്രത്തിൽ ജനിച്ച മൂത്തറാണി,"വഞ്ചീശസ്തവം, കാർത്തവീര്യവിജയം, സന്താനഗോപാലം, ശൃങ്ഗാരസുധാകരം ഭാണവും, രുക്‍മിണീപരിണയം, നരകാസുരവധം ഉത്തരഭാഗം, രുക്‍മിണീ സ്വയംവരം, ദശാവതാരദണ്ഡകവും, പൂതനാമോക്ഷം, അംബരീഷചരിതം, പൗണ്ഡ്രകവധം, ശ്രീപദ്മനാഭകീർത്തനം"
-33.13,രവിവർമ്മമഹാരാജാവു് (തിരുവിതാംകൂർ),844,893,തിരുവിതാംകൂര്‍ കൊട്ടാരം,തിരുവനന്തപുരം,തിരുവനന്തപുരം,8.524139,76.936638,,അശ്വതിതിരുനാൾ ഉമയമ്മറാണി,രാമായണസംഗ്രഹം`;
-
         // Initialize the map
         const map = L.map('map').setView([8.6, 76.9], 10);
         
@@ -329,9 +322,14 @@
             else if (year < 950) return "Medieval";
             else return "Late Medieval";
         }
+
+        function getMarkerStyle(row) {
+            return "cyan";
+        }
         
         // Parse CSV and create markers
-        Papa.parse(csvData, {
+        Papa.parse('./datasheet.csv', {
+            download: true,
             header: true,
             skipEmptyLines: true,
             dynamicTyping: false,
@@ -429,9 +427,9 @@
                 });
                 
                 // Update statistics
-                const avgLifespan = Math.round(totalLifespan / data.length);
+                // const avgLifespan = Math.round(totalLifespan / data.length);
                 document.getElementById('totalWriters').textContent = data.length;
-                document.getElementById('avgLifespan').textContent = avgLifespan;
+                // document.getElementById('avgLifespan').textContent = avgLifespan;
                 document.getElementById('literaryWorks').textContent = totalWorks + '+';
                 
                 // Determine time period range
@@ -440,8 +438,8 @@
                 const maxYear = Math.max(...birthYears);
                 const minCentury = Math.ceil(minYear / 100);
                 const maxCentury = Math.ceil(maxYear / 100);
-                document.getElementById('timePeriod').textContent = 
-                    minCentury === maxCentury ? `${minCentury}th Century` : `${minCentury}-${maxCentury}th Century`;
+                // document.getElementById('timePeriod').textContent = 
+                //     minCentury === maxCentury ? `${minCentury}th Century` : `${minCentury}-${maxCentury}th Century`;
                 
                 // Fit map to show all markers
                 const group = new L.featureGroup();
